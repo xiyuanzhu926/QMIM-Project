@@ -1,0 +1,184 @@
+# Data Dictionary – CRSP Daily Stock Data (2010–2025)
+
+## Dataset Overview
+
+- **Data Source:** CRSP via WRDS
+- **Investment Universe:** Top 100 US companies by market capitalisation as of 4 January 2010
+- **Selection Criteria:** US common equities, excluding ETFs, ADRs and foreign companies
+- **Time Period:** 4 January 2010 – 31 December 2025
+- **Frequency:** Daily
+- **Number of Companies:** 100
+- **Number of Securities:** 104
+- **Number of Trading Days:** 4,024
+
+## 1. Company and Security Identification
+
+| Variable | Description |
+|---|---|
+| `permno` | Permanent security identification number |
+| `permco` | Permanent company identification number |
+| `ticker` | Stock ticker symbol |
+| `issuernm` | Issuer (company) name |
+| `securitynm` | Security name |
+| `hdrcusip` | Header CUSIP identifier |
+| `shareclass` | Share class (e.g. Class A or Class B) |
+| `primaryexch` | Primary stock exchange |
+
+## 2. Dates and Data Coverage
+
+| Variable | Description |
+|---|---|
+| `dlycaldt` | Daily calendar date |
+| `secinfostartdt` | Security information start date |
+| `secinfoenddt` | Security information end date |
+| `securitybegdt` | Beginning date of security data |
+| `securityenddt` | Ending date of security data |
+
+## 3. Security Classification
+
+| Variable | Description |
+|---|---|
+| `securitytype` | Security type |
+| `securitysubtype` | Security subtype |
+| `sharetype` | Type of shares |
+| `issuertype` | Issuer type |
+| `usincflg` | US incorporation flag |
+| `conditionaltype` | Trading condition type |
+| `tradingstatusflg` | Trading status flag |
+
+## 4. Returns and Market Capitalisation
+
+| Variable | Description |
+|---|---|
+| `dlyret` | Daily total return, including distributions |
+| `dlyretx` | Daily return excluding distributions |
+| `dlycap` | Daily market capitalisation |
+| `dlyprevcap` | Previous market capitalisation |
+| `shrout` | Number of shares outstanding |
+| `dlyretmissflg` | Daily return missing flag |
+| `dlyretdurflg` | Daily return duration flag |
+| `dlycapflg` | Daily capitalisation flag |
+
+## 5. Price and Trading Information
+
+| Variable | Description |
+|---|---|
+| `dlyprc` | Daily price |
+| `dlyprcflg` | Daily price flag |
+| `dlyopen` | Daily opening price |
+| `dlyclose` | Daily closing price |
+| `dlyhigh` | Daily highest price |
+| `dlylow` | Daily lowest price |
+| `dlybid` | Daily bid price |
+| `dlyask` | Daily ask price |
+| `dlyvol` | Daily trading volume |
+| `dlynumtrd` | Daily number of trades |
+| `dlycumfacpr` | Daily cumulative price adjustment factor |
+| `dlycumfacshr` | Daily cumulative shares adjustment factor |
+
+## 6. Delisting Information
+
+| Variable | Description |
+|---|---|
+| `dlydelflg` | Daily delisting flag |
+| `delactiontype` | Delisting corporate action type |
+| `delstatustype` | Delisting status type |
+| `delreasontype` | Delisting reason type |
+| `delpaymenttype` | Delisting payment type |
+
+## 7. Industry Classification
+
+| Variable | Description |
+|---|---|
+| `siccd` | Standard Industrial Classification code |
+| `naics` | North American Industry Classification System code |
+| `icbindustry` | Industry Classification Benchmark industry code |
+
+## 8. Market Benchmark Returns
+
+| Variable | Description |
+|---|---|
+| `vwretd` | Value-weighted market return including dividends |
+| `vwretx` | Value-weighted market return excluding dividends |
+| `ewretd` | Equal-weighted market return including dividends |
+| `ewretx` | Equal-weighted market return excluding dividends |
+| `sprtrn` | S&P 500 Index price return |
+
+## 9. Variables Created During Data Cleaning
+
+These variables are calculated during data preparation rather than 
+directly obtained from CRSP.
+
+| Variable | Description |
+|---|---|
+| `weighted_ret` | Security return multiplied by previous-day market capitalisation, summed across share classes at the company level |
+| `return` | Company-level daily return weighted by previous-day market capitalisation |
+| `market_cap` | Company-level market capitalisation |
+| `company_name` | Company name associated with each PERMCO |
+
+## 10. Output Files
+
+| File | Description |
+|---|---|
+| `2010_Top100_US_Equities.csv` | Initial list of 100 companies ranked by historical market capitalisation |
+| `2010_2025_Top100_Cleaned.csv.gz` | Compressed security-level historical dataset |
+| `2010_2025_Company_Returns.csv` | Company-level daily returns in long format |
+| `2010_2025_Return_Matrix.csv` | Daily return matrix in wide format (4,024 × 100) |
+
+## 11. Key Variables for Portfolio Optimisation
+
+| Variable | Purpose |
+|---|---|
+| `permco` | Company identification |
+| `dlycaldt` | Trading date |
+| `return` | Expected return and covariance estimation |
+| `dlycap` | Market-cap-weighted benchmark construction |
+| `dlyprevcap` | Share-class return aggregation |
+| `dlyvol` | Liquidity and trading capacity analysis |
+| `dlydelflg` | Identification of delisting events |
+| `sprtrn` | S&P 500 price-return benchmark |
+
+## 12. Data Cleaning Notes
+
+- The investment universe is fixed at the initial 100 companies 
+  selected in January 2010.
+- Multiple share classes are aggregated using previous-day market 
+  capitalisation weights, following the weighted portfolio return 
+  framework from QMIM Portfolio Theory (Slides 7–8).
+- Historical returns of delisted companies are retained to avoid 
+  survivorship bias.
+- Post-delisting missing returns are retained as `NaN` rather than 
+  replaced with zero.
+- No internal missing returns were identified within each company's 
+  observed return history.
+- All returns are expressed in decimals (e.g. 0.02 = 2%).
+- Original CRSP market capitalisation values are expressed in 
+  thousands of US dollars.
+- Company identifiers (PERMCO) are used instead of tickers to maintain 
+  consistency over time.
+
+## 13. Loading the Compressed Dataset
+
+The full dataset has been compressed due to GitHub's file size limit.
+It can be loaded directly using pandas without manual decompression.
+
+```python
+import pandas as pd
+
+df = pd.read_csv(
+    "2010_2025_Top100_Cleaned.csv.gz",
+    low_memory=False
+)
+```
+
+To load the return matrix for portfolio optimisation:
+
+```python
+returns = pd.read_csv(
+    "2010_2025_Return_Matrix.csv",
+    index_col=0,
+    parse_dates=True
+)
+```
+
+The uncompressed full dataset is also available on the shared Google Drive.
